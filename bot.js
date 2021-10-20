@@ -4,6 +4,7 @@ const express = require('express')
 const Session = require('telegraf-session-local')
 const text = require('./consts.js')
 const api = require('covid19-api')
+const moment = require('moment')
 
 
 
@@ -57,7 +58,8 @@ bot.hears('Смотивируй меня', ctx => {
 })
 
 bot.hears('Время', ctx => {
-  ctx.replyWithHTML(String(new Date()) + ' &#9200')
+  moment.locale('ru')
+  ctx.replyWithHTML(moment().format('LLLL') + ' &#9200')
 })
 
 bot.hears('Погода', ctx => {
