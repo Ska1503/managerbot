@@ -1,0 +1,28 @@
+{
+  "name": "managerbotnext",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node bot.js",
+    "dev": "nodemon bot.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "covid19-api": "^1.2.1",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "telegraf": "^4.4.2",
+    "telegraf-session-local": "^2.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.14"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "*.json"
+    ]
+  }
+}
