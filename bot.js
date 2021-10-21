@@ -5,8 +5,8 @@ const Session = require('telegraf-session-local')
 const text = require('./consts.js')
 const api = require('covid19-api')
 const moment = require('moment')
-
-
+const axios = require('axios')
+const cc = require('currency-codes')
 
 const app = express()
 const bot = new Telegraf(process.env.BOT_TOKEN)
@@ -35,14 +35,16 @@ bot.hears('Мои задачи', async ctx => {
     ctx.replyWithHTML(text.task)
   } else {
     ctx.replyWithHTML(
-      '<b>Список твоих задач:</b>\n\n' + `${result}`
+      `<b>Список твоих задач:</b> &#128221 \n\n  ${result}`
     )
   }
 })
 
+
 bot.hears('Удалить задачу', ctx => {
   ctx.replyWithHTML(text.deleteTask)
 })
+
 
 bot.hears(/^Удалить\s(\d+)$/, ctx => {
   const id = Number(+/\d+/.exec(ctx.message.text)) - 1
@@ -57,54 +59,61 @@ bot.hears('Смотивируй меня', ctx => {
   })
 })
 
+
 bot.hears('Время', ctx => {
   moment.locale('ru')
   ctx.replyWithHTML(moment().format('LLLL') + ' &#9200')
 })
 
-bot.hears('Погода', ctx => {
-  ctx.reply('Здесь будет погода')
+
+bot.hears('Погода',async ctx => {
+ 
+const key = '95ba65247e84ad3b5fe1fa5e2c4db1c8'
+let city = 'Zaporizhia'
+let url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&lang=ru&units=metric&appid=${key}`
 
 
+  axios.get(url).then(res => {
+    try {
+      ctx.replyWithHTML(`
+      <i><b>Погода в ${res.data.name}</b></i>
+       
+<b>Температура:</b> ${res.data.main.temp}&#176
+<b>Влажность:</b> ${res.data.main.humidity}%
+<b>Скорость ветра:</b> ${res.data.wind.speed} м/с
+    `)
+    } catch (error) {
+      console.log('Error');
+    }
+    
+  })  
 })
+
 
 bot.hears('Covid-19', ctx => {
   ctx.replyWithHTML(text.covid, covidKeyboard())
 })
+addCovidKeyboard('Ukraine')
+addCovidKeyboard('Russia')
+addCovidKeyboard('Poland')
+addCovidKeyboard('Belarus')
 
 
-function addCovidKeyboard(name) {
-  bot.action(name, async ctx => {
-    let data = {}
-  
-    try {
-    await ctx.answerCbQuery()
-    data = await api.getReportsByCountries(`${name}`)
-  
-    const formatData = `
-Страна: ${data [0][0].country} 	
-Случаи: ${data [0][0].cases}
-Смертей: ${data [0][0].deaths}
-Вылечились: ${data [0][0].recovered} 
-    `
-    ctx.reply(formatData)
-    } catch {
-    console.log('Ошибка')
-    ctx.reply('Ошибка, такой страны не существует.')
-    }
-  })
-}
-addCovidKeyboard('ukraine')
-addCovidKeyboard('russia')
-addCovidKeyboard('poland')
-addCovidKeyboard('belarus')
+bot.hears('Курс валют', ctx => {
+  ctx.replyWithHTML(text.curText, getCurKeyboard())
+})
+addCurrencyKeyboard('USD')
+addCurrencyKeyboard('EUR')
+addCurrencyKeyboard('RUB')
+addCurrencyKeyboard('PLN')
+
 
 bot.on('text', ctx => {
   ctx.session.taskText = ctx.message.text
 
   ctx.replyWithHTML(
-    `Ты действительно хочешь добавить задачу:\n\n` +
-    `<i>${ctx.message.text}</i>`, yesNoKeyboard()
+    `Ты действительно хочешь добавить задачу?\n\n` +
+    `<b><i>${ctx.message.text}</i></b>`, yesNoKeyboard()
   )
 })
 
@@ -156,7 +165,6 @@ function getMyTask() {
   })
 }
 
-
 function addTask(text, voice) {
   taskList.push(text)
   // taskList.push(voice)
@@ -173,7 +181,8 @@ function getMainMenu() {
   return Markup.keyboard([
     ['Мои задачи','Удалить задачу'],
     ['Смотивируй меня', 'Время'],
-    ['Погода', 'Covid-19']
+    ['Погода', 'Covid-19'],
+    ['Курс валют']
   ]).resize()
 }
 
@@ -188,12 +197,71 @@ function yesNoKeyboard() {
 
 function covidKeyboard() {
   return Markup.inlineKeyboard([
-    Markup.button.callback('Украина', 'ukraine'),
-    Markup.button.callback('Россия', 'russia'),
-    Markup.button.callback('Польша', 'poland'),
-    Markup.button.callback('Беларусь', 'belarus'),
-  ],{colums:2})
+    Markup.button.callback('Украина', 'Ukraine'),
+    Markup.button.callback('Россия', 'Russia'),
+    Markup.button.callback('Польша', 'Poland'),
+    Markup.button.callback('Беларусь', 'Belarus'),
+  ],{columns:2})
 }
+
+
+function getCurKeyboard() {
+  return Markup.inlineKeyboard([
+    Markup.button.callback('Доллар', 'USD'),
+    Markup.button.callback('Евро', 'EUR'),
+    Markup.button.callback('Рубль', 'RUB'),
+    Markup.button.callback('Злотый', 'PLN')
+  ], {columns:2})
+}
+
+
+function addCovidKeyboard(name) {
+  bot.action(name, async ctx => {
+    let data = {}
+  
+    try {
+    await ctx.answerCbQuery()
+    data = await api.getReportsByCountries(`${name}`)
+  
+    const formatData = `
+<b>Страна:</b>  ${data [0][0].country} 	
+<b>Случаи:</b>  ${data [0][0].cases}
+<b>Смертей:</b>  ${data [0][0].deaths}
+<b>Вылечились:</b>  ${data [0][0].recovered} 
+    `
+    ctx.replyWithHTML(formatData)
+    } catch {
+    console.log('Ошибка')
+    ctx.reply('Ошибка, такой страны не существует.')
+    }
+  })
+}
+
+
+function addCurrencyKeyboard(currName) {
+  bot.action(currName, async ctx => {
+    const clientCurCode = currName
+    const currencyCode = cc.code(clientCurCode)
+
+    try {
+      await ctx.answerCbQuery()
+      const currencyObj = await axios.get('https://api.monobank.ua/bank/currency')
+
+      const foundCurrency = currencyObj.data.find((cur) => {
+        return cur.currencyCodeA.toString() === currencyCode.number
+      })
+      ctx.replyWithHTML(`
+<b>Валюта:</b>   ${currencyCode.code}
+<b>Покупка:</b>  ${foundCurrency.rateBuy}
+<b>Продажа:</b>  ${foundCurrency.rateSell}
+      `)
+
+    } catch (error) {
+       ctx.replyWithHTML('Попробуй позже &#128257')
+      }
+  })
+}
+
 bot.launch()
 app.listen(3000, () => console.log('Start'))
 
