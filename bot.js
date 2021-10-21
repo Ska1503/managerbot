@@ -22,6 +22,10 @@ bot.help(ctx => {
   ctx.replyWithHTML(text.help)
 })
 
+bot.hears('/about', ctx => {
+  ctx.replyWithHTML(text.aboutBot)
+})
+
 bot.hears('Мои задачи', async ctx => {
   const tasks = await getMyTask()
   let result = ''
@@ -66,18 +70,18 @@ bot.hears('Время', ctx => {
 })
 
 
-bot.hears('Погода',async ctx => {
+bot.hears('Погода', async ctx => {
  
 const key = '95ba65247e84ad3b5fe1fa5e2c4db1c8'
 let city = 'Zaporizhia'
 let url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&lang=ru&units=metric&appid=${key}`
 
 
-  axios.get(url).then(res => {
+ await axios.get(url).then(res => {
     try {
       ctx.replyWithHTML(`
       <i><b>Погода в ${res.data.name}</b></i>
-       
+
 <b>Температура:</b> ${res.data.main.temp}&#176
 <b>Влажность:</b> ${res.data.main.humidity}%
 <b>Скорость ветра:</b> ${res.data.wind.speed} м/с
