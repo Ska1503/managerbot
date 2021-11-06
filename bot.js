@@ -66,7 +66,7 @@ bot.hears('Смотивируй меня', ctx => {
 
 bot.hears('Время', ctx => {
   moment.locale('ru')
-  ctx.replyWithHTML(moment().format('LL'))
+  ctx.replyWithHTML('Сегодня 'moment().format('LL'))
 })
 
 
@@ -184,7 +184,7 @@ function deleteTask(id) {
 function getMainMenu() {
   return Markup.keyboard([
     ['Мои задачи','Удалить задачу'],
-    ['Смотивируй меня', 'Время'],
+    ['Смотивируй меня', 'Дата'],
     ['Погода', 'Covid-19'],
     ['Курс валют']
   ]).resize()
