@@ -64,7 +64,7 @@ bot.hears('Смотивируй меня', ctx => {
 })
 
 
-bot.hears('Время', ctx => {
+bot.hears('Дата', ctx => {
   moment.locale('ru')
   ctx.replyWithHTML('Сегодня '+ moment().format('LL'))
 })
